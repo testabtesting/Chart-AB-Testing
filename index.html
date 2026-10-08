@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Visualization Test</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.5;
+  }
+  h1 { margin-bottom: 10px; }
+  #chart-container {
+    position: relative;
+    height: 420px;
+    margin: 25px 0;
+  }
+  .options {
+    display: grid;
+    gap: 8px;
+    margin: 20px 0;
+  }
+  label {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button {
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  #message {
+    margin-top: 20px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<h2>Which month has the highest sales?</h2>
+
+<div id="chart-container">
+  <canvas id="salesChart"></canvas>
+</div>
+
+<form id="answerForm">
+  <div class="options">
+    <label><input type="radio" name="answer" value="June"> June</label>
+    <label><input type="radio" name="answer" value="July"> July</label>
+    <label><input type="radio" name="answer" value="August"> August</label>
+    <label><input type="radio" name="answer" value="September"> September</label>  </div>
+  <button type="submit">Submit</button>
+</form>
+
+<div id="message"></div>
+
+<script>
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbzRWgR9hjixkM5sXo78V2aH_k2dv3wF7ItJZM1Im9Q2h5CcwjEIB0WdlOu3TVYBj2kWhQ/exec";
+
+const months = ["June", "July", "August", "September"];
+
+const sales = [469, 455, 461, 478];
+
+let participantId = localStorage.getItem("participant_id");
+let group = localStorage.getItem("ab_group");
+
+if (!participantId) {
+  participantId = crypto.randomUUID();
+  localStorage.setItem("participant_id", participantId);
+}
+
+if (!group) {
+  group = Math.random() < 0.5 ? "A" : "B";
+  localStorage.setItem("ab_group", group);
+}
+
+const chartType = group === "A" ? "bar" : "line";
+
+function sendData(payload) {
+  return fetch(ENDPOINT, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+// Record page view.
+sendData({
+  event: "page_view",
+  participant_id: participantId,
+  group: group,
+  chart: chartType,
+  answer: "",
+  correct: "",
+  timestamp: new Date().toISOString()
+}).catch(err => console.error("Page view error:", err));
+
+const ctx = document.getElementById("salesChart").getContext("2d");
+
+new Chart(ctx, {
+  type: chartType,
+  data: {
+    labels: months,
+    datasets: [{
+      label: "Sales",
+      data: sales,
+      borderWidth: 2,
+      fill: false
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  }
+});
+
+let submitted = false;
+
+document.getElementById("answerForm").addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  // Prevent double-clicks or multiple submissions.
+  if (submitted) return;
+
+  const selected = document.querySelector('input[name="answer"]:checked');
+
+  if (!selected) {
+    document.getElementById("message").textContent = "Please select an answer.";
+    return;
+  }
+
+  submitted = true;
+
+  // Disable the button immediately, before sending the response.
+  const submitButton = event.target.querySelector("button");
+  submitButton.disabled = true;
+  submitButton.textContent = "Submitted";
+
+  document.querySelectorAll('input[name="answer"]').forEach(input => {
+    input.disabled = true;
+  });
+
+  const answer = selected.value;
+  const correct = answer === "September";
+
+  const payload = {
+    event: "response",
+    participant_id: participantId,
+    group: group,
+    chart: chartType,
+    answer: answer,
+    correct: correct,
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    await sendData(payload);
+
+    document.body.innerHTML = `
+      <div style="max-width:700px;margin:120px auto;padding:0 20px;text-align:center;font-family:Arial,sans-serif;">
+        <h1>Thank you!</h1>
+        <p>Your response was recorded.</p>
+      </div>
+    `;
+
+  } catch (error) {
+    console.error("Submission error:", error);
+    document.getElementById("message").textContent =
+      "There was a problem submitting your response.";
+  }
+});
+</script>
+
+</body>
+</html>
