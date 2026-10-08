@@ -275,5 +275,4 @@ There are many other things that could be considered in a more advanced A/B test
 ---
 
  
-   ta/README.md").write_text(readme, encoding="utf-8")
-print("Updated /mnt/data/README.md")
+ 
