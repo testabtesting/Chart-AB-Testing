@@ -1,7 +1,3 @@
-from pathlib import Path
-
-readme = r'''# A/B Testing: Which Visualization Is Better?
-
 ## Introduction
 
 I wanted to learn how **A/B testing actually works**, so I decided to build a small A/B experiment from scratch.
