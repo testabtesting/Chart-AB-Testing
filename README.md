@@ -1,23 +1,3 @@
-## Introduction
-
-I wanted to learn how **A/B testing actually works**, so I decided to build a small A/B experiment from scratch.
-
-The project started with a simple question:
-
-> **Which visualization is better for presenting sales data—a line chart or a bar chart?**
-
-Instead of choosing based on my own preference, I decided to build an experiment, collect responses, and use the data to see what happened.
-
-## A Note About This Repository
-
-This repository is simply my way of **getting my feet into A/B testing**.
-
-I am not trying to make this a long and complicated A/B testing project. There are many things that can be considered in a more advanced experiment, but I wanted to keep this project simple so I could build it, run it, and understand the basic workflow from beginning to end.
-
-**Having said that, here are the simple steps this repository covers:**
-
----
-
 ## Step 1: Define the Problem
 
 I have been hesitant about which chart is best for presenting the last quarters of sales data: a **line chart or a bar chart**.
